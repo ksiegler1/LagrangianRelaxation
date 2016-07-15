@@ -5,6 +5,16 @@ import time
 
 
 def create_demand_df(demand_file):
+    """
+    Re-formats demand file
+    Parameters:
+    -----------------------------------
+    demand_file: string name of file in directory
+    that contains demand info for nodes
+    Returns:
+    -----------------------------------
+    demand_df: re-formatted dataframe for easier use
+    """
     demand = []
     with open(demand_file) as f:
         for line in f:
@@ -17,6 +27,17 @@ def create_demand_df(demand_file):
 
 
 def create_distances_matrix(node_file, num_nodes):
+    """
+    Re-formats distance file
+    Parameters:
+    -----------------------------------
+    node_file: string name of node file / directory path
+    num_nodes: number of nodes to maximize demand over
+    Returns:
+    -----------------------------------
+    distances_matrix: re-formatted matrix for easier use
+    """
+
     distances = []
     with open(node_file) as f:
         for line in f:
@@ -28,12 +49,32 @@ def create_distances_matrix(node_file, num_nodes):
 
 
 def create_boolean_matrix(distance_mat, d_c):
+    """
+    Creates indicator matrix given d_c value over all demand nodes
+    Parameters:
+    -----------------------------------
+    distance_mat: matrix of distances between node i and j
+    d_c: maximum coverage distance
+    Returns:
+    -----------------------------------
+    binary_matrix: binary matrix indicating whether distance between node 
+    i and j is less than the maximum coverage distance
+    """
     bool = distance_mat <= d_c
     binary_matrix = bool.astype(int)
     return binary_matrix
 
 
 def calc_subproblem_1(demand_df):
+    """
+    Returns value for subproblem 1 of algorithm
+    Parameters:
+    -----------------------------------
+    demand_df: dataframe with demand values at node i
+    Returns:
+    -----------------------------------
+    demand_df: same dataframe with new columns added with value of subproblem 1
+    """
     demand_df['difference'] = demand_df['demand'] - demand_df['lambda_0']
     indicator = lambda x: 1 if x > 0 else 0
     demand_df['Z'] = demand_df['difference'].apply(indicator)
@@ -42,6 +83,17 @@ def calc_subproblem_1(demand_df):
 
 
 def calc_subproblem_2(demand_df, adj_matrix, p):
+    """
+    Returns value for subproblem 2 of algorithm
+    Parameters:
+    -----------------------------------
+    demand_df: dataframe with suproblem 1 values updated
+    adj_matrix: binary matrix indicating whether node i to j is covered
+    by maximal coverage value D_c
+    Returns:
+    ----------------------------------
+    demand_df: same dataframe with new columns added with value of subproblem 2
+    """
     adj_df = pd.DataFrame(adj_matrix)
     ai_lambda = adj_df.dot(demand_df['lambda_0'])
     demand_df['ai_lambda'] = ai_lambda
@@ -54,11 +106,17 @@ def calc_subproblem_2(demand_df, adj_matrix, p):
 
 
 def calc_relaxed_cons(adj_mat, dem_df):
-    '''
-    :param adj_mat:
-    :param dem_df: demand dataframe from subproblem 2 with output from subproblem 1
-    :return:
-    '''
+    """
+    Returns value of relaxed constraint values
+    Parameters:
+    -----------------------------------
+    adj_mat: binary matrix indicating whether node i to j is covered
+    dem_df: dataframe with subproblems 1 and 2 values updated
+    by maximal coverage value D_c
+    Returns:
+    ----------------------------------
+    demand_df: same dataframe with new columns added with value of calculated relaxed constraint
+    """
     adj_df = pd.DataFrame(adj_mat)
     dem_df['aij_xj'] = adj_df.dot(dem_df['x_ij'])
     dem_df['const_output'] = dem_df['aij_xj'] - dem_df['Z']
@@ -66,6 +124,19 @@ def calc_relaxed_cons(adj_mat, dem_df):
 
 
 def calc_upper_lower_bound(dem_df, adj_mat):
+    """
+    Calculates relaxed constraint values
+    Parameters:
+    -----------------------------------
+    adj_mat: binary matrix indicating whether node i to j is covered
+    dem_df: dataframe with subproblems 1 and 2 values updated
+    by maximal coverage value D_c
+    Returns:
+    ----------------------------------
+    demand_df: demand dataframe with adjancency indicator column added
+    ub: upper bound value
+    lub: lower upper bound value
+    """
     ub = dem_df['sub1output'].sum() + dem_df['sub2output'].sum()
     # min_rank = list(dem_df['rank'].nsmallest(p).index)
     adj_df = pd.DataFrame(adj_mat)
@@ -79,6 +150,21 @@ def calc_upper_lower_bound(dem_df, adj_mat):
 
 
 def update_lambdas(dem_df, alpha, curr_ub, blb):
+    """
+    Updates the lambda values for the next iteration
+    Parameters:
+    -----------------------------------
+    dem_df: dataframe with subproblems 1 and 2 values updated
+    by maximal coverage value D_c
+    alpha: alpha value
+    curr_ub: current upper bound
+    blb: best lower upper bound
+    Returns:
+    ----------------------------------
+    updated_lambdas: updated lambda values for next iteration
+    t_n: for updating lagrange multipliers
+    """
+
     t_n = (alpha * (curr_ub - blb)) / sum(dem_df['const_output']**2)
     compute_lambda = dem_df['lambda_0'] - t_n * dem_df['const_output']
     func = lambda x: 0 if x < 0 else x
@@ -175,7 +261,7 @@ if __name__ == '__main__':
     time_vals = []
     gap_vals = []
     for p in range(3, 20):
-        temp_pct, temp_p, temp_time, temp_gap = main(p, 49, 400, "/Users/ksiegler/Documents/USFClasses/SupplyChain/Project/supply-chain-project/49 NodeDemandData.txt", "/Users/ksiegler/Documents/USFClasses/SupplyChain/Project/supply-chain-project/49Node.txt")
+        temp_pct, temp_p, temp_time, temp_gap = main(p, 49, 400, "49 NodeDemandData.txt", "49Node.txt")
         p_vals.append(temp_p)
         pct_vals.append(temp_pct)
         time_vals.append(temp_time)
