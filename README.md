@@ -10,4 +10,4 @@ Given a node demand and distance dataset, the algorithm will produce an indicati
 
 The graph below shows an analysis on the algorithm solution for each demand node file with a Dc value of 200. The algorithm achieves close to 95% coverage of the demand nodes at it's highest value.
 
-![alt tag](https://github.com/ksiegler1/LagrangianRelaxation/blob/master/pct_cvg.png =250x250)
+![alt tag](https://github.com/ksiegler1/LagrangianRelaxation/blob/master/pct_cvg.png)
