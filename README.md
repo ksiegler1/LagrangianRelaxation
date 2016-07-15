@@ -1,4 +1,5 @@
 # Lagrangian Relaxation Implementation
+#### Algorithm code is located in lagrange.py
 
 This code is an implementation of Lagrangian Relaxation to approximate the Maximal Covering problem, where we wish to find the location of P different facilities that will maximize covered demand.
 Inputs include:
